@@ -1,0 +1,25 @@
+async function sendMsg() {
+    const text = document.getElementById('msgInput').value.trim();
+    const chatId = document.getElementById('chatId').value.trim();
+    
+    if(!text || !chatId) return;
+
+    try {
+        await fetch('http://localhost:3000/api/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, sender: currentUserId, chatId })
+        });
+
+        await db.collection("messages").doc(chatId).collection("contents").add({
+            text: text,
+            sender_id: currentUserId,
+            timestamp: firebase.firestore.Timestamp.now(),
+            type: "text"
+        });
+
+        document.getElementById('msgInput').value = '';
+    } catch (e) {
+        console.error("Connection failed", e);
+    }
+}
