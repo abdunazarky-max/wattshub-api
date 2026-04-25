@@ -1,0 +1,19 @@
+{
+  "name": "wattshub-signaling-server",
+  "version": "1.0.0",
+  "description": "Real-time signaling server for WattsHub messenger",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_OPTIONS=--openssl-legacy-provider node index.js",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase-admin": "^13.8.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

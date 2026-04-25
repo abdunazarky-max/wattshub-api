@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WattsHub</string>
+    <string name="default_web_client_id">766721780456-dummy.apps.googleusercontent.com</string>
+    <string name="welcome_message">Welcome WattsHub</string>
+</resources>

@@ -1,0 +1,68 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper functions for file validation
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    function isSmallFile(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // Check if the user is a participant in the chat
+    function isChatParticipant(chatId) {
+      return chatId.matches('.*' + request.auth.uid + '.*') || 
+             firestore.exists(/databases/(default)/documents/groups/$(chatId)/members/$(request.auth.uid));
+    }
+
+    // 1. Profile Pictures: Read by anyone authenticated, write by owner
+    match /profiles/{userId}.jpg {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId 
+                   && isImage() && isSmallFile(5);
+    }
+    
+    // 2. Cover Photos: Read by anyone authenticated, write by owner
+    match /covers/{userId}.jpg {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId 
+                   && isImage() && isSmallFile(5);
+    }
+    
+    // 3. Status Updates: Read by authenticated users, write by creator
+    match /statuses/{userId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId 
+                   && (isImage() || isVideo()) && isSmallFile(20);
+    }
+    
+    // 4. Chat Media: Photos and Videos exchanged in chats
+    match /chat_media/{chatId}/{fileName} {
+      allow read: if isSignedIn() && isChatParticipant(chatId);
+      allow write: if isSignedIn() && isChatParticipant(chatId) 
+                   && ((isImage() && isSmallFile(10)) || (isVideo() && isSmallFile(100)));
+    }
+    
+    // 5. Temporary Pictures for Sign-Up Flow (Used before final account creation)
+    match /temp_pics/{identifier}.jpg {
+      allow read, write: if true; 
+    }
+    
+    // 6. Default Fallback
+    match /{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if false; 
+    }
+  }
+}
